@@ -30,20 +30,26 @@ public class H264Packet extends BasePacket {
     // NAL units are preceded with 0x00000001
     byteBuffer.rewind();
     byteBuffer.get(header, 0, 5);
+
     long ts = bufferInfo.presentationTimeUs * 1000L;
+
     int naluLength = bufferInfo.size - byteBuffer.position() + 1;
+
     int type = header[4] & 0x1F;
+
     if (type == RtpConstants.IDR || bufferInfo.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
       byte[] buffer = getBuffer(stapA.length + RtpConstants.RTP_HEADER_LENGTH);
       updateTimeStamp(buffer, ts);
 
       markPacket(buffer); //mark end frame
       System.arraycopy(stapA, 0, buffer, RtpConstants.RTP_HEADER_LENGTH, stapA.length);
-
       updateSeq(buffer);
+
       RtpFrame rtpFrame =
           new RtpFrame(buffer, ts, stapA.length + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort,
               channelIdentifier);
+
+
       videoPacketCallback.onVideoFrameCreated(rtpFrame);
       sendKeyFrame = true;
     }
@@ -61,6 +67,9 @@ public class H264Packet extends BasePacket {
         markPacket(buffer); //mark end frame
 
         updateSeq(buffer);
+
+
+
         RtpFrame rtpFrame =
             new RtpFrame(buffer, ts, naluLength + RtpConstants.RTP_HEADER_LENGTH, rtpPort, rtcpPort,
                 channelIdentifier);

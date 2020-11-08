@@ -1,5 +1,6 @@
 package net.ossrs.rtmp;
 
+import android.content.Context;
 import android.media.MediaCodec;
 import android.os.Handler;
 import android.os.Looper;
@@ -8,11 +9,16 @@ import android.util.Log;
 import com.github.faucamp.simplertmp.DefaultRtmpPublisher;
 import com.github.faucamp.simplertmp.RtmpPublisher;
 
+import com.pedro.encoder.ts.TsWriter;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Created by winlin on 5/2/15.
@@ -82,6 +88,9 @@ public class SrsFlvMuxer {
   private long mDroppedAudioFrames = 0;
   private long mDroppedVideoFrames = 0;
   private long startTs = 0;
+  Context context;
+  private AtomicLong tsIndexGen = new AtomicLong(1);										//  ads 1,2,3   normal 4...
+
 
   /**
    * constructor.
@@ -90,6 +99,11 @@ public class SrsFlvMuxer {
     this.connectCheckerRtmp = connectCheckerRtmp;
     this.publisher = publisher;
     handler = new Handler(Looper.getMainLooper());
+  }
+
+  public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp, Context context) {
+    this(connectCheckerRtmp, new DefaultRtmpPublisher(connectCheckerRtmp));
+    this.context = context;
   }
 
   public SrsFlvMuxer(ConnectCheckerRtmp connectCheckerRtmp) {
@@ -926,6 +940,29 @@ public class SrsFlvMuxer {
       int type = SrsCodecVideoAVCFrame.InterFrame;
       SrsFlvFrameBytes frame = avc.demuxAnnexb(bb, bi.size, true);
       int nal_unit_type = frame.data.get(0) & 0x1f;
+
+      switch (nal_unit_type){
+        case 5: {
+          System.out.println("yyy IDR");
+          break;
+        }
+        case 1: {
+          System.out.println("yyy KEY");
+          break;
+        }
+        case 7: {
+          System.out.println("yyy SPS");
+          break;
+        }
+        case 8: {
+          System.out.println("yyy PPS");
+          break;
+        }
+        default:{
+          System.out.println("yyy nal_unit_type: "+nal_unit_type);
+        }
+      }
+
       if (nal_unit_type == SrsAvcNaluType.IDR || bi.flags == MediaCodec.BUFFER_FLAG_KEY_FRAME) {
         type = SrsCodecVideoAVCFrame.KeyFrame;
       } else if (nal_unit_type == SrsAvcNaluType.SPS || nal_unit_type == SrsAvcNaluType.PPS) {
@@ -960,7 +997,8 @@ public class SrsFlvMuxer {
       ipbs.add(avc.muxNaluHeader(frame));
       ipbs.add(frame);
 
-      writeH264IpbFrame(ipbs, type, pts);
+      writeH264IpbFrame(ipbs, type, pts, pts);
+
       ipbs.clear();
     }
 
@@ -991,15 +1029,62 @@ public class SrsFlvMuxer {
           Pps.array().length));
     }
 
-    private void writeH264IpbFrame(ArrayList<SrsFlvFrameBytes> frames, int frame_type, int dts) {
+    boolean isFirstPes = true;
+
+    private void writeH264IpbFrame(ArrayList<SrsFlvFrameBytes> frames, int frame_type, int dts, int pts) {
       // when sps or pps not sent, ignore the packet.
       // @see https://github.com/simple-rtmp-server/srs/issues/203
       if (Pps == null || Sps == null) {
         return;
       }
+
+      TsWriter.FrameData[] frameDatas = new TsWriter.FrameData[ frames.size()  ];
+
+
+      for(int i = 0; i <= frames.size() - 1; i++){
+        TsWriter.FrameData frameData = new TsWriter.FrameData();
+
+        byte[] arr = new byte[frames.get(i).data.remaining()];
+        frames.get(i).data.get(arr);
+
+        frameData.buf = arr;
+        frameData.dts = dts - 200;
+        frameData.pts = pts;
+        frameData.isAudio = false;
+
+        frameDatas[i] = frameData;
+      }
+
+      //TsWriter tsWriter = new TsWriter();
+      //byte[] buf = tsWriter.write(isFirstPes, TsWriter.FrameDataType.VIDEO, frameDatas);
+      //
+      //writeTsFile("tsfile"+tsIndexGen.getAndIncrement()+".ts", buf, context);
+      //isFirstPes = false;
+
       video_tag = avc.muxFlvTag(frames, frame_type, SrsCodecVideoAVCType.NALU);
       // the timestamp in rtmp message header is dts.
       writeRtmpPacket(SrsCodecFlvTag.Video, dts, frame_type, SrsCodecVideoAVCType.NALU, video_tag);
+    }
+
+    private void writeTsFile(
+        String pathname,
+        byte[] buf, Context context
+    ) {
+      FileOutputStream fos = null;
+      try {
+        fos = context.openFileOutput(pathname, Context.MODE_APPEND);
+        fos.write(buf);
+        fos.flush();
+      } catch (IOException e) {
+        e.printStackTrace();
+      } finally {
+        try {
+          if (fos != null) {
+            fos.close();
+          }
+        } catch (Exception ex) {
+        }
+      }
     }
 
     private void writeRtmpPacket(int type, int dts, int frame_type, int avc_aac_type,

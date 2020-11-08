@@ -16,12 +16,10 @@ import android.widget.Toast;
 import com.pedro.rtpstreamer.backgroundexample.BackgroundActivity;
 import com.pedro.rtpstreamer.customexample.RtmpActivity;
 import com.pedro.rtpstreamer.customexample.RtspActivity;
-import com.pedro.rtpstreamer.defaultexample.ExampleRtmpActivity;
 import com.pedro.rtpstreamer.defaultexample.ExampleRtspActivity;
 import com.pedro.rtpstreamer.displayexample.DisplayActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtmpFromFileActivity;
 import com.pedro.rtpstreamer.filestreamexample.RtspFromFileActivity;
-import com.pedro.rtpstreamer.openglexample.OpenGlRtmpActivity;
 import com.pedro.rtpstreamer.openglexample.OpenGlRtspActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtmpActivity;
 import com.pedro.rtpstreamer.surfacemodeexample.SurfaceModeRtspActivity;
@@ -71,8 +69,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     activities.add(
         new ActivityLink(new Intent(this, RtspActivity.class), getString(R.string.rtsp_streamer),
             JELLY_BEAN));
-    activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
-        getString(R.string.default_rtmp), JELLY_BEAN));
+    //activities.add(new ActivityLink(new Intent(this, ExampleRtmpActivity.class),
+    //    getString(R.string.default_rtmp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, ExampleRtspActivity.class),
         getString(R.string.default_rtsp), JELLY_BEAN));
     activities.add(new ActivityLink(new Intent(this, RtmpFromFileActivity.class),
@@ -87,8 +85,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         getString(R.string.texture_mode_rtmp), LOLLIPOP));
     activities.add(new ActivityLink(new Intent(this, TextureModeRtspActivity.class),
         getString(R.string.texture_mode_rtsp), LOLLIPOP));
-    activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
-        getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
+    //activities.add(new ActivityLink(new Intent(this, OpenGlRtmpActivity.class),
+    //    getString(R.string.opengl_rtmp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, OpenGlRtspActivity.class),
         getString(R.string.opengl_rtsp), JELLY_BEAN_MR2));
     activities.add(new ActivityLink(new Intent(this, DisplayActivity.class),

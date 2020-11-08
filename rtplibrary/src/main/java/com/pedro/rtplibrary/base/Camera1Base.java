@@ -21,6 +21,7 @@ import com.pedro.encoder.input.video.CameraCallbacks;
 import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.encoder.input.video.CameraOpenException;
 import com.pedro.encoder.input.video.GetCameraData;
+import com.pedro.encoder.ts.TsSegment;
 import com.pedro.encoder.utils.CodecUtil;
 import com.pedro.encoder.video.FormatVideoEncoder;
 import com.pedro.encoder.video.GetVideoData;
@@ -33,6 +34,7 @@ import com.pedro.rtplibrary.view.OffScreenGlThread;
 import com.pedro.rtplibrary.view.OpenGlView;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,6 +67,7 @@ public abstract class Camera1Base
   private RecordController recordController;
   private int previewWidth, previewHeight;
   private FpsListener fpsListener = new FpsListener();
+
 
   public Camera1Base(SurfaceView surfaceView) {
     context = surfaceView.getContext();
@@ -471,16 +474,17 @@ public abstract class Camera1Base
    */
   public void startStream(String url) {
     streaming = true;
-    if (!recordController.isRunning()) {
-      startEncoders();
-    } else {
-      resetVideoEncoder();
-    }
-    startStreamRtp(url);
+    startEncoders();
+    //if (!recordController.isRunning()) {
+    //  startEncoders();
+    //} else {
+    //  resetVideoEncoder();
+    //}
+    //startStreamRtp(url);
     onPreview = true;
   }
 
-  private void startEncoders() {
+  public void startEncoders() {
     videoEncoder.start();
     audioEncoder.start();
     prepareGlView();
@@ -493,7 +497,7 @@ public abstract class Camera1Base
     onPreview = true;
   }
 
-  private void resetVideoEncoder() {
+  public void resetVideoEncoder() {
     if (glInterface != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
       glInterface.removeMediaCodecSurface();
     }
@@ -758,6 +762,7 @@ public abstract class Camera1Base
 
   @Override
   public void onSpsPps(ByteBuffer sps, ByteBuffer pps) {
+    System.out.println("xxx onSpsPps");
     if (streaming) onSpsPpsVpsRtp(sps, pps, null);
   }
 

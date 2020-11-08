@@ -101,8 +101,48 @@ public abstract class BaseEncoder implements EncoderCallback {
     }
     for (; running; ) {
       int outBufferIndex = codec.dequeueOutputBuffer(bufferInfo, 0);
+
+
+      //while (outBufferIndex >= 0) {
+      //  ByteBuffer outputBuffer = outputBuffers[outputBufferIndex];
+      //  byte[] outData = new byte[bufferInfo.size];
+      //  outputBuffer.get(outData);
+      //  if (sps != null && pps != null) {
+      //    ByteBuffer frameBuffer = ByteBuffer.wrap(outData);
+      //    frameBuffer.putInt(bufferInfo.size - 4);
+      //    frameListener.frameReceived(outData, 0, outData.length);
+      //  } else {
+      //    ByteBuffer spsPpsBuffer = ByteBuffer.wrap(outData);
+      //    if (spsPpsBuffer.getInt() == 0x00000001) {
+      //      System.out.println("parsing sps/pps");
+      //    } else {
+      //      System.out.println("something is amiss?");
+      //    }
+      //    int ppsIndex = 0;
+      //    while(!(spsPpsBuffer.get() == 0x00 && spsPpsBuffer.get() == 0x00 && spsPpsBuffer.get() == 0x00 && spsPpsBuffer.get() == 0x01)) {
+      //
+      //    }
+      //    ppsIndex = spsPpsBuffer.position();
+      //    sps = new byte[ppsIndex - 8];
+      //    System.arraycopy(outData, 4, sps, 0, sps.length);
+      //    pps = new byte[outData.length - ppsIndex];
+      //    System.arraycopy(outData, ppsIndex, pps, 0, pps.length);
+      //    if (null != parameterSetsListener) {
+      //      parameterSetsListener.avcParametersSetsEstablished(sps, pps);
+      //    }
+      //  }
+      //  mediaCodec.releaseOutputBuffer(outputBufferIndex, false);
+      //  outBufferIndex = mediaCodec.dequeueOutputBuffer(bufferInfo, 0);
+      //}
+
       if (outBufferIndex == MediaCodec.INFO_OUTPUT_FORMAT_CHANGED) {
         MediaFormat mediaFormat = codec.getOutputFormat();
+
+        // SPS, PPS NALU data in Annex-B format in extradata
+        //mediaFormat.setByteBuffer("csd-0", extradata);
+        //// …
+        //mediaCodec.configure(mediaFormat, surface, 0, 0);
+
         formatChanged(codec, mediaFormat);
       } else if (outBufferIndex >= 0) {
         outputAvailable(codec, outBufferIndex, bufferInfo);

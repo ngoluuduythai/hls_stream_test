@@ -17,8 +17,27 @@ android {
       consumerProguardFiles 'proguard-rules.pro'
     }
   }
+  compileOptions {
+    sourceCompatibility JavaVersion.VERSION_1_8
+    targetCompatibility JavaVersion.VERSION_1_8
+  }
 }
 
 dependencies {
   api 'androidx.annotation:annotation:1.1.0'
+//  // 1. Use Guava in your implementation only:
+//  implementation("com.google.guava:guava:29.0-jre")
+//
+//  // 2. Use Guava types in your public API:
+//  api("com.google.guava:guava:29.0-jre")
+//
+//  // 3. Android - Use Guava in your implementation only:
+//  implementation("com.google.guava:guava:29.0-android")
+//
+//  // 4. Android - Use Guava types in your public API:
+//  api("com.google.guava:guava:29.0-android")
+  implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.3.72"
+  implementation "androidx.core:core-ktx:1.3.1"
+
+
 }

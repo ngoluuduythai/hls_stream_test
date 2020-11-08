@@ -181,6 +181,7 @@ public class RtspCamera2 extends Camera2Base {
 
   @Override
   protected void getH264DataRtp(ByteBuffer h264Buffer, MediaCodec.BufferInfo info) {
+
     rtspClient.sendVideo(h264Buffer, info);
   }
 }
